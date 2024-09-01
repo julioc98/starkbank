@@ -10,6 +10,7 @@ type UseCase interface {
 	GetAll() ([]domain.Analyst, error)
 	GetByID(id uint64) (*domain.Analyst, error)
 	Create(a *domain.Analyst) error
+	Analyze(msg *domain.Msg) (*domain.Msg, error)
 }
 
 // RestHandler represents a REST handler for  drivers.
@@ -31,4 +32,5 @@ func (h *RestHandler) RegisterHandlers() {
 	h.r.Post("/analysts", h.CreateAnalyst)
 	h.r.Get("/analysts", h.GetAllAnalysts)
 	h.r.Get("/analysts/{id}", h.GetAnalystByID)
+	h.r.Post("/msg", h.ResponseMsg)
 }

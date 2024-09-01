@@ -86,3 +86,33 @@ func (h *RestHandler) GetAnalystByID(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 }
+
+// ResponseMsg responds to a domain.Msg.
+func (h *RestHandler) ResponseMsg(w http.ResponseWriter, r *http.Request) {
+	var msg *domain.Msg
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&msg); err != nil {
+		http.Error(w, err.Error()+" Decode", http.StatusBadRequest)
+
+		return
+	}
+
+	msg, err := h.uc.Analyze(msg)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	encoder := json.NewEncoder(w)
+	if err := encoder.Encode(msg); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
