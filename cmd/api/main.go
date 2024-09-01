@@ -47,7 +47,7 @@ func main() {
 	defer genaiClient.Close()
 
 	model := genaiClient.GenerativeModel("gemini-1.5-flash")
-	model.SetMaxOutputTokens(50)
+	model.SetMaxOutputTokens(70)
 	model.SystemInstruction = genai.NewUserContent(genai.Text("Voce é um Customer Success Analyst do StarkBank com acesso ao knowledge base e FAQ, responda como estivesse pesquisado em uma base de dados e sempre seja solicito e com pedidos de desculpa quando necessário."))
 
 	r := chi.NewRouter()
