@@ -76,7 +76,8 @@ func (uc *UseCase) Analyze(msg *domain.Msg) (*domain.Msg, error) {
 			Source: &languagepb.Document_Content{
 				Content: msg.Content,
 			},
-			Type: languagepb.Document_PLAIN_TEXT,
+			Type:     languagepb.Document_PLAIN_TEXT,
+			Language: "pt-BR",
 		},
 		EncodingType: languagepb.EncodingType_UTF8,
 	})
@@ -86,14 +87,12 @@ func (uc *UseCase) Analyze(msg *domain.Msg) (*domain.Msg, error) {
 
 	emotion := "unknown"
 
-	if sentiment.DocumentSentiment.Score >= 0.8 && sentiment.DocumentSentiment.Magnitude >= 0.8 {
+	if sentiment.DocumentSentiment.Score >= 0.6 {
 		emotion = "positive"
-	} else if sentiment.DocumentSentiment.Score >= 0.1 && sentiment.DocumentSentiment.Magnitude >= 0 {
+	} else if sentiment.DocumentSentiment.Score >= 0.1 {
 		emotion = "neutral"
-	} else if sentiment.DocumentSentiment.Score <= 0 && sentiment.DocumentSentiment.Magnitude <= 0.7 {
+	} else if sentiment.DocumentSentiment.Score <= 0 {
 		emotion = "negative"
-	} else if sentiment.DocumentSentiment.Score <= 0 && sentiment.DocumentSentiment.Magnitude >= 0.8 {
-		emotion = "mixed"
 	}
 
 	msg.Sentiment = emotion
