@@ -4,15 +4,18 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/google/generative-ai-go/genai"
 	"github.com/julioc98/starkbank/internal/app"
 	"github.com/julioc98/starkbank/internal/infra/api"
 	"github.com/julioc98/starkbank/internal/infra/db"
 	"github.com/julioc98/starkbank/pkg/database"
 	_ "github.com/lib/pq"
+	"google.golang.org/api/option"
 
 	language "cloud.google.com/go/language/apiv1"
 )
@@ -30,11 +33,21 @@ func main() {
 	defer conn.Close()
 
 	// Creates a client.
-	client, err := language.NewClient(ctx)
+	langClient, err := language.NewClient(ctx)
 	if err != nil {
 		log.Fatalf("Failed to create client: %v", err)
 	}
-	defer client.Close()
+	defer langClient.Close()
+
+	genaiClient, err := genai.NewClient(ctx, option.WithAPIKey(os.Getenv("API_KEY")))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer genaiClient.Close()
+
+	model := genaiClient.GenerativeModel("gemini-1.5-flash")
+	model.SetMaxOutputTokens(50)
+	model.SystemInstruction = genai.NewUserContent(genai.Text("Voce é um Customer Success Analyst do StarkBank com acesso ao knowledge base e FAQ, responda como estivesse pesquisado em uma base de dados e sempre seja solicito e com pedidos de desculpa quando necessário."))
 
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
@@ -52,7 +65,7 @@ func main() {
 	}))
 
 	repo := db.NewAnalystPostgresRepository(conn)
-	uc := app.NewUseCase(repo, client)
+	uc := app.NewUseCase(repo, langClient, genaiClient, model)
 	h := api.NewRestHandler(r, uc)
 
 	h.RegisterHandlers()

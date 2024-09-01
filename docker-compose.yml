@@ -9,6 +9,8 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mynetwork
 
   adminer:
     image: adminer:latest
@@ -17,15 +19,21 @@ services:
       ADMINER_DESIGN: dracula
     ports:
       - "8080:8080"
+    networks:
+      - mynetwork
 
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
-    depends_on:
-      - postgres
+  # api:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - postgres
 
 volumes:
   postgres_data:
+
+networks:
+  mynetwork:
+    driver: bridge
