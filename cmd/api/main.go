@@ -4,18 +4,16 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"os"
 
+	"cloud.google.com/go/vertexai/genai"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/google/generative-ai-go/genai"
 	"github.com/julioc98/starkbank/internal/app"
 	"github.com/julioc98/starkbank/internal/infra/api"
 	"github.com/julioc98/starkbank/internal/infra/db"
 	"github.com/julioc98/starkbank/pkg/database"
 	_ "github.com/lib/pq"
-	"google.golang.org/api/option"
 
 	language "cloud.google.com/go/language/apiv1"
 )
@@ -39,7 +37,10 @@ func main() {
 	}
 	defer langClient.Close()
 
-	genaiClient, err := genai.NewClient(ctx, option.WithAPIKey(os.Getenv("GENAI_API_KEY")))
+	projectID := "dooki-hackathon"
+	location := "us-central1"
+
+	genaiClient, err := genai.NewClient(ctx, projectID, location)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -65,7 +66,7 @@ func main() {
 	}))
 
 	repo := db.NewAnalystPostgresRepository(conn)
-	uc := app.NewUseCase(repo, langClient, genaiClient, model)
+	uc := app.NewUseCase(ctx, repo, langClient, genaiClient, model)
 	h := api.NewRestHandler(r, uc)
 
 	h.RegisterHandlers()

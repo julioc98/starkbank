@@ -7,14 +7,20 @@ require (
 	github.com/lib/pq v1.10.9
 )
 
-require github.com/go-chi/cors v1.2.1
+require (
+	cloud.google.com/go/vertexai v0.13.0
+	github.com/go-chi/cors v1.2.1
+)
+
+require (
+	cloud.google.com/go/aiplatform v1.68.0 // indirect
+	cloud.google.com/go/iam v1.1.13 // indirect
+	google.golang.org/genproto v0.0.0-20240823204242-4ba0660f739c // indirect
+)
 
 require (
 	cloud.google.com/go v0.115.1 // indirect
-	cloud.google.com/go/ai v0.8.0 // indirect
-	cloud.google.com/go/longrunning v0.5.7 // indirect
-	github.com/google/generative-ai-go v0.17.0
-	github.com/google/uuid v1.6.0 // indirect
+	cloud.google.com/go/longrunning v0.5.12 // indirect
 )
 
 require (

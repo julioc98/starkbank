@@ -10,7 +10,7 @@ import (
 
 	language "cloud.google.com/go/language/apiv1"
 	"cloud.google.com/go/language/apiv1/languagepb"
-	"github.com/google/generative-ai-go/genai"
+	"cloud.google.com/go/vertexai/genai"
 	"github.com/julioc98/starkbank/internal/domain"
 )
 
@@ -22,18 +22,22 @@ type Repository interface {
 }
 
 type UseCase struct {
+	ctx   context.Context
 	repo  Repository
 	l     *language.Client
 	gen   *genai.Client
 	model *genai.GenerativeModel
+	chat  *genai.ChatSession
 }
 
-func NewUseCase(repo Repository, l *language.Client, g *genai.Client, m *genai.GenerativeModel) *UseCase {
+func NewUseCase(ctx context.Context, repo Repository, l *language.Client, g *genai.Client, m *genai.GenerativeModel) *UseCase {
 	return &UseCase{
+		ctx:   ctx,
 		repo:  repo,
 		l:     l,
 		gen:   g,
 		model: m,
+		chat:  m.StartChat(),
 	}
 }
 
@@ -57,10 +61,10 @@ func (uc *UseCase) GetBySentimentAndSkill(sentiment, skill string) ([]domain.Ana
 func (uc *UseCase) Analyze(msg *domain.Msg) (*domain.Msg, error) {
 	log.Printf("Analyzing message: %s\n", msg.Content)
 
-	ctx := context.Background()
+	// ctx := uc.ctx
 
 	// Detects the sentiment of the text.
-	sentiment, err := uc.l.AnalyzeSentiment(ctx, &languagepb.AnalyzeSentimentRequest{
+	sentiment, err := uc.l.AnalyzeSentiment(context.Background(), &languagepb.AnalyzeSentimentRequest{
 		Document: &languagepb.Document{
 			Source: &languagepb.Document_Content{
 				Content: msg.Content,
@@ -116,16 +120,28 @@ func (uc *UseCase) Analyze(msg *domain.Msg) (*domain.Msg, error) {
 }
 
 func (uc *UseCase) Response(msg *domain.Msg) (*domain.Msg, error) {
-	ctx := context.Background()
+	// ctx := uc.ctx
 
-	resp, err := uc.model.GenerateContent(ctx, genai.Text(msg.Content))
+	// resp, err := uc.model.GenerateContent(ctx, genai.Text(msg.Content))
+	// if err != nil {
+	// 	return nil, err
+	// }
+
+	log.Printf("Sending message: %s\n", msg.Content)
+
+	resp, err := uc.send(msg.Content)
 	if err != nil {
 		return nil, err
 	}
 
+	log.Printf("Response: %s\n", resp)
+
 	msg.CreatedAt = time.Now()
 
-	msg.Response = genResponse(resp)
+	// msg.Response = genResponse(resp)
+
+	msg.Response = resp
+
 	return msg, nil
 }
 
@@ -174,4 +190,23 @@ func findingKey(word string) string {
 		}
 	}
 	return "general"
+}
+
+func (uc *UseCase) send(message string) (string, error) {
+	// ctx := uc.ctx
+	ctx := context.Background()
+	r, err := uc.chat.SendMessage(ctx, genai.Text(message))
+	if err != nil {
+		log.Printf("SendMessage Error: %v\n", err)
+		return "", err
+	}
+
+	log.Printf("Response: %v\n", r)
+
+	// rb, err := json.MarshalIndent(r, "", "  ")
+	// if err != nil {
+	// 	return "", err
+	// }
+
+	return genResponse(r), nil
 }
