@@ -65,7 +65,8 @@ func (uc *UseCase) Analyze(msg *domain.Msg) (*domain.Msg, error) {
 			Source: &languagepb.Document_Content{
 				Content: msg.Content,
 			},
-			Type: languagepb.Document_PLAIN_TEXT,
+			Type:     languagepb.Document_PLAIN_TEXT,
+			Language: "pt-BR", // Brazilian Portuguese
 		},
 		EncodingType: languagepb.EncodingType_UTF8,
 	})
