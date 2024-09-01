@@ -39,7 +39,7 @@ func main() {
 	}
 	defer langClient.Close()
 
-	genaiClient, err := genai.NewClient(ctx, option.WithAPIKey(os.Getenv("API_KEY")))
+	genaiClient, err := genai.NewClient(ctx, option.WithAPIKey(os.Getenv("GENAI_API_KEY")))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -56,7 +56,7 @@ func main() {
 	r.Use(middleware.AllowContentType("application/json", "text/xml"))
 	// CORS
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"*"}, // Permite todos os domínios
+		AllowedOrigins:   []string{"*"}, // All origins
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
